@@ -1,0 +1,289 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今日份可爱请查收 🎀</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入 Google Fonts: 圆润可爱字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Quicksand', 'ZCOOL KuaiLe', sans-serif;
+            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+            overflow-x: hidden;
+        }
+
+        /* 自定义动画 */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .animate-wiggle:hover {
+            animation: wiggle 0.5s ease-in-out infinite;
+        }
+
+        .card-pop {
+            animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* 玻璃拟态卡片 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+
+        /* 隐藏滚动条但保留功能 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 按钮点击效果 */
+        .btn-bounce:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 selection:bg-pink-200 selection:text-pink-600">
+
+    <!-- 背景装饰气泡 -->
+    <div class="fixed top-10 left-10 w-20 h-20 bg-white/30 rounded-full blur-xl animate-float"></div>
+    <div class="fixed bottom-20 right-10 w-32 h-32 bg-pink-200/30 rounded-full blur-xl animate-float" style="animation-delay: 1s;"></div>
+    <div class="fixed top-1/2 left-1/4 w-16 h-16 bg-yellow-200/30 rounded-full blur-xl animate-float" style="animation-delay: 2s;"></div>
+
+    <main class="w-full max-w-md z-10">
+        
+        <!-- 头部欢迎区 -->
+        <header class="text-center mb-8">
+            <div class="inline-block p-4 rounded-full bg-white/50 shadow-lg mb-4 animate-float">
+                <img src="https://picsum.photos/id/1025/200/200" alt="一只可爱的巴哥犬特写" class="w-24 h-24 rounded-full object-cover border-4 border-white">
+            </div>
+            <h1 class="text-3xl font-bold text-gray-700 mb-2">Hi, 小圆! 👋</h1>
+            <p class="text-gray-500 text-sm">今天也是元气满满的一天哦~</p>
+        </header>
+
+        <!-- 核心功能卡片容器 -->
+        <div class="space-y-6">
+
+            <!-- 1. 每日治愈语录 -->
+            <section class="glass-card rounded-3xl p-6 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <i class="fas fa-quote-right text-6xl text-pink-400"></i>
+                </div>
+                <h2 class="text-lg font-bold text-pink-500 mb-3 flex items-center gap-2">
+                    <i class="fas fa-heart"></i> 每日甜度
+                </h2>
+                <p id="quoteText" class="text-gray-600 text-lg leading-relaxed min-h-[3rem]">
+                    正在加载今日份的甜蜜...
+                </p>
+                <button onclick="newQuote()" class="mt-4 px-4 py-2 bg-pink-100 text-pink-500 rounded-full text-sm font-bold hover:bg-pink-200 transition-colors btn-bounce">
+                    <i class="fas fa-sync-alt mr-1"></i> 换一句
+                </button>
+            </section>
+
+            <!-- 2. 互动宠物/心情选择 -->
+            <section class="glass-card rounded-3xl p-6">
+                <h2 class="text-lg font-bold text-blue-500 mb-4 flex items-center gap-2">
+                    <i class="fas fa-paw"></i> 摸摸头
+                </h2>
+                <div class="flex justify-around items-center">
+                    <button onclick="petAnimal('cat')" class="flex flex-col items-center gap-2 group btn-bounce">
+                        <div class="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center text-3xl group-hover:bg-yellow-50 transition-colors animate-wiggle">
+                            🐱
+                        </div>
+                        <span class="text-xs text-gray-500 font-bold">撸猫</span>
+                    </button>
+                    <button onclick="petAnimal('dog')" class="flex flex-col items-center gap-2 group btn-bounce">
+                        <div class="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center text-3xl group-hover:bg-orange-50 transition-colors animate-wiggle" style="animation-delay: 0.1s">
+                            🐶
+                        </div>
+                        <span class="text-xs text-gray-500 font-bold">遛狗</span>
+                    </button>
+                    <button onclick="petAnimal('rabbit')" class="flex flex-col items-center gap-2 group btn-bounce">
+                        <div class="w-16 h-16 bg-white rounded-2xl shadow-md flex items-center justify-center text-3xl group-hover:bg-pink-50 transition-colors animate-wiggle" style="animation-delay: 0.2s">
+                            🐰
+                        </div>
+                        <span class="text-xs text-gray-500 font-bold">喂兔</span>
+                    </button>
+                </div>
+                <div id="petResponse" class="mt-4 text-center text-sm text-gray-500 h-6">
+                    选一个小动物陪陪你吧~
+                </div>
+            </section>
+
+            <!-- 3. 心情日记 (LocalStorage) -->
+            <section class="glass-card rounded-3xl p-6">
+                <h2 class="text-lg font-bold text-purple-500 mb-4 flex items-center gap-2">
+                    <i class="fas fa-book-open"></i> 心情便签
+                </h2>
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="moodInput" placeholder="记下此刻的小确幸..." class="flex-1 px-4 py-2 rounded-xl border-none bg-white/50 focus:bg-white focus:ring-2 focus:ring-purple-200 outline-none transition-all text-sm">
+                    <button onclick="addMood()" class="px-4 py-2 bg-purple-400 text-white rounded-xl hover:bg-purple-500 transition-colors btn-bounce shadow-lg shadow-purple-200">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <ul id="moodList" class="space-y-2 max-h-40 overflow-y-auto no-scrollbar">
+                    <!-- 动态插入心情 -->
+                    <li class="text-center text-gray-400 text-xs py-4">还没有记录哦，快来添加第一条吧~</li>
+                </ul>
+            </section>
+
+        </div>
+
+        <!-- 底部版权 -->
+        <footer class="mt-8 text-center text-xs text-gray-400">
+            <p>Made with 💖 for You</p>
+        </footer>
+
+    </main>
+
+    <script>
+        // --- 数据与配置 ---
+        const quotes = [
+            "你笑起来真好看，像春天的花一样 🌸",
+            "今天也要做自己的小太阳呀 ☀️",
+            "所有的美好都和你有关 🎀",
+            "你是落入凡间的小天使 👼",
+            "记得要开心，不止今天，而是每一天 ✨",
+            "你的可爱治愈了一切不可爱 🧸",
+            "生活明朗，万物可爱，你也按时长大 🎂",
+            "想送你满口袋的星星和月亮 🌙",
+            "不管几岁，快乐万岁 🎉",
+            "你值得拥有世间所有的美好 🌹"
+        ];
+
+        const petResponses = {
+            'cat': ['喵~ 呼噜呼噜 ~', '猫咪蹭了蹭你的手 ❤️', '它说今天想吃小鱼干 🐟'],
+            'dog': ['汪！尾巴摇成螺旋桨啦！', '狗狗把头放在你膝盖上 🐶', '它想和你去公园飞盘 🎾'],
+            'rabbit': ['蹦蹦跳跳真可爱 🐰', '兔子耳朵动了一下 ~', '它正在嚼胡萝卜 🥕']
+        };
+
+        // --- 功能函数 ---
+
+        // 1. 随机语录
+        function newQuote() {
+            const quoteEl = document.getElementById('quoteText');
+            // 简单的淡出效果
+            quoteEl.style.opacity = 0;
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * quotes.length);
+                quoteEl.innerText = quotes[randomIndex];
+                quoteEl.style.opacity = 1;
+            }, 300);
+        }
+
+        // 2. 宠物互动
+        function petAnimal(type) {
+            const responseEl = document.getElementById('petResponse');
+            const responses = petResponses[type];
+            const randomResp = responses[Math.floor(Math.random() * responses.length)];
+            
+            responseEl.innerText = randomResp;
+            responseEl.classList.remove('card-pop');
+            void responseEl.offsetWidth; // 触发重绘
+            responseEl.classList.add('card-pop');
+            
+            // 简单的震动反馈 (如果设备支持)
+            if (navigator.vibrate) navigator.vibrate(50);
+        }
+
+        // 3. 心情日记 (LocalStorage)
+        function loadMoods() {
+            const moods = JSON.parse(localStorage.getItem('cuteMoods') || '[]');
+            renderMoods(moods);
+        }
+
+        function addMood() {
+            const input = document.getElementById('moodInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const moods = JSON.parse(localStorage.getItem('cuteMoods') || '[]');
+            const newMood = {
+                id: Date.now(),
+                text: text,
+                date: new Date().toLocaleDateString()
+            };
+            
+            moods.unshift(newMood); // 添加到开头
+            localStorage.setItem('cuteMoods', JSON.stringify(moods));
+            
+            input.value = '';
+            renderMoods(moods);
+        }
+
+        function deleteMood(id) {
+            let moods = JSON.parse(localStorage.getItem('cuteMoods') || '[]');
+            moods = moods.filter(m => m.id !== id);
+            localStorage.setItem('cuteMoods', JSON.stringify(moods));
+            renderMoods(moods);
+        }
+
+        function renderMoods(moods) {
+            const listEl = document.getElementById('moodList');
+            listEl.innerHTML = '';
+
+            if (moods.length === 0) {
+                listEl.innerHTML = '<li class="text-center text-gray-400 text-xs py-4">还没有记录哦，快来添加第一条吧~</li>';
+                return;
+            }
+
+            moods.forEach(mood => {
+                const li = document.createElement('li');
+                li.className = 'bg-white/60 p-3 rounded-xl flex justify-between items-center group hover:bg-white transition-colors card-pop';
+                li.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="text-gray-700 text-sm font-medium">${mood.text}</span>
+                        <span class="text-[10px] text-gray-400">${mood.date}</span>
+                    </div>
+                    <button onclick="deleteMood(${mood.id})" class="text-gray-300 hover:text-red-400 transition-colors p-2">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                `;
+                listEl.appendChild(li);
+            });
+        }
+
+        // 初始化
+        window.onload = () => {
+            newQuote();
+            loadMoods();
+            
+            // 绑定回车键添加心情
+            document.getElementById('moodInput').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    addMood();
+                }
+            });
+        };
+    </script>
+</body>
+</html>
