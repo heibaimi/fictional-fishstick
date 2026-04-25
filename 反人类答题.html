@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>反人类答题游戏 ⏳ 倒计时版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            user-select: none;
+        }
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .option-btn {
+            transition: all 0.2s;
+            background: #f8f9fa;
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .option-btn.correct {
+            background: #4caf50 !important;
+            color: white !important;
+        }
+        .option-btn.wrong {
+            background: #f44336 !important;
+            color: white !important;
+        }
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            pointer-events: none;
+        }
+        .timer-bar {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .timer-fill {
+            height: 100%;
+            background: #4caf50;
+            width: 100%;
+            transition: width 0.1s linear;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 游戏主界面 -->
+    <div id="game-container" class="question-card">
+        
+        <!-- 顶部状态栏 -->
+        <div class="p-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+            <h1 class="text-2xl font-bold text-center">反人类答题</h1>
+            <div class="flex justify-between mt-2">
+                <span>题目: <span id="question-num">1</span>/10</span>
+                <span>分数: <span id="score">0</span></span>
+            </div>
+        </div>
+
+        <!-- 题目内容区 -->
+        <div class="p-6">
+            <!-- 倒计时进度条 -->
+            <div class="timer-bar">
+                <div id="timer-fill" class="timer-fill"></div>
+            </div>
+            
+            <div id="question-text" class="text-xl font-bold mb-8 text-center min-h-[80px] flex items-center justify-center">
+                加载题目中...
+            </div>
+            
+            <div id="options-container" class="space-y-3">
+                <!-- 选项由JS动态生成 -->
+            </div>
+
+            <!-- 导航按钮 -->
+            <div class="mt-8 flex justify-between">
+                <button id="prev-btn" class="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50">上一题</button>
+                <button id="next-btn" class="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:opacity-50">下一题</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏结束弹窗 -->
+    <div id="game-over" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden">
+        <div class="question-card p-8 text-center">
+            <i class="fas fa-bomb text-6xl text-red-500 mb-4"></i>
+            <h2 class="text-2xl font-bold mb-2">游戏结束！</h2>
+            <p class="text-gray-600 mb-6">你的最终分数: <span id="final-score" class="text-2xl font-bold text-purple-600">0</span></p>
+            <button onclick="restartGame()" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-bold shadow-lg hover:shadow-purple-500/50 transition transform hover:-translate-y-1">
+                再虐一次
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 题目库（反人类设计）
+        const questions = [
+            {
+                question: "1 + 1 = ?",
+                options: ["2", "11", "窗", "田"],
+                correct: 2,
+                explanation: "没错，就是‘窗’！因为两个‘1’中间加一个‘+’和‘=’，看起来像‘口’+‘囱’=‘窗’"
+            },
+            {
+                question: "以下哪个水果不能吃？",
+                options: ["榴莲", "苹果", "香蕉", "熟透的榴莲"],
+                correct: 3,
+                explanation: "‘熟透的榴莲’虽然能吃，但选项里其他都是正常水果，只有它是‘伪装成能吃’的！"
+            },
+            {
+                question: "程序员最讨厌的字母是什么？",
+                options: ["A", "B", "C", "F"],
+                correct: 3,
+                explanation: "因为‘F’在代码评审中代表‘Fail’（失败），或者想到‘F**k’也行~"
+            },
+            {
+                question: "企鹅的膝盖在哪里？",
+                options: ["在脚上", "在肚子下面", "在翅膀下面", "企鹅没有膝盖"],
+                correct: 0,
+                explanation: "企鹅的膝盖其实藏在羽毛下面，看起来像没有，但解剖学上是有膝盖的！"
+            },
+            {
+                question: "‘鲁迅说过’后面通常接什么？",
+                options: ["学医救不了中国人", "世上本没有路", "我大抵是病了", "以上都对"],
+                correct: 3,
+                explanation: "鲁迅：我太难了，这些话我都说过（并没有）"
+            },
+            {
+                question: "如何让一个数变成原来的两倍？",
+                options: ["乘以2", "加自己一次", "把小数点向右移一位", "在后面加个0"],
+                correct: 2,
+                explanation: "‘把小数点向右移一位’只对小数有效，比如0.5→5，但其他选项也不完全对，这道题是陷阱！"
+            },
+            {
+                question: "‘回’字有几种写法？",
+                options: ["1种", "2种", "4种", "鲁迅说有5种"],
+                correct: 3,
+                explanation: "鲁迅在《孔乙己》中说‘回字有四种写法’，但选项里没有，所以选‘鲁迅说有5种’反套路！"
+            },
+            {
+                question: "以下哪个是颜色？",
+                options: ["红色", "绿色", "蓝色", "以上都不是"],
+                correct: 3,
+                explanation: "因为题目问的是‘以下哪个是颜色’，而选项都是‘颜色名称’，所以‘以上都不是’才是正确答案（反逻辑）"
+            },
+            {
+                question: "‘我是你爸爸’的反义词是？",
+                options: ["你是我儿子", "我不是你爸爸", "你是我爸爸", "以上都不对"],
+                correct: 2,
+                explanation: "逻辑反转！‘我是你爸爸’的反义就是‘你是我爸爸’，是不是很绕？"
+            },
+            {
+                question: "最终问题：你答对了几题？",
+                options: ["0-3题", "4-6题", "7-9题", "全对"],
+                correct: 0, // 实际答案由JS动态计算
+                explanation: "这道题是送命题！正确答案取决于你前面的表现，答错会扣分哦~"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answeredQuestions = []; // 记录已答过的题目索引
+        let timer; // 倒计时定时器
+        const TIME_LIMIT = 10000; // 每题10秒（单位：毫秒）
+        let timeLeft = TIME_LIMIT;
+
+        // 初始化游戏
+        function initGame() {
+            currentQuestion = 0;
+            score = 0;
+            answeredQuestions = [];
+            timeLeft = TIME_LIMIT;
+            clearInterval(timer); // 清除之前的定时器
+            updateQuestion();
+            document.getElementById('game-over').classList.add('hidden');
+        }
+
+        // 更新题目显示
+        function updateQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('question-num').innerText = currentQuestion + 1;
+            document.getElementById('question-text').innerText = q.question;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left p-4 rounded-xl border';
+                btn.innerText = option;
+                btn.onclick = () => checkAnswer(index);
+                optionsContainer.appendChild(btn);
+            });
+
+            // 更新导航按钮状态
+            document.getElementById('prev-btn').disabled = currentQuestion === 0;
+            document.getElementById('next-btn').disabled = currentQuestion === questions.length - 1 && answeredQuestions.length === questions.length;
+
+            // 重置倒计时
+            resetTimer();
+        }
+
+        // 重置倒计时
+        function resetTimer() {
+            clearInterval(timer);
+            timeLeft = TIME_LIMIT;
+            updateTimerBar();
+            
+            // 启动倒计时
+            timer = setInterval(() => {
+                timeLeft -= 100;
+                updateTimerBar();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    handleTimeout();
+                }
+            }, 100);
+        }
+
+        // 更新进度条
+        function updateTimerBar() {
+            const progress = (timeLeft / TIME_LIMIT) * 100;
+            document.getElementById('timer-fill').style.width = `${progress}%`;
+            
+            // 低于30%时变红
+            if (progress < 30) {
+                document.getElementById('timer-fill').style.backgroundColor = '#f44336';
+            } else {
+                document.getElementById('timer-fill').style.backgroundColor = '#4caf50';
+            }
+        }
+
+        // 超时处理
+        function handleTimeout() {
+            const q = questions[currentQuestion];
+            alert(`⏱️ 超时！正确答案是：${q.options[q.correct]}\n解释：${q.explanation}`);
+            document.getElementById('game-container').classList.add('shake');
+            setTimeout(() => {
+                document.getElementById('game-container').classList.remove('shake');
+            }, 500);
+            
+            // 如果是最后一题的“动态答案”
+            if (currentQuestion === questions.length - 1) {
+                const correctRange = getScoreRange();
+                q.correct = correctRange;
+            }
+            
+            // 记录已答（即使超时）
+            if (!answeredQuestions.includes(currentQuestion)) {
+                answeredQuestions.push(currentQuestion);
+            }
+            
+            // 自动跳转
+            setTimeout(() => {
+                if (currentQuestion === questions.length - 1) {
+                    endGame();
+                } else {
+                    nextQuestion();
+                }
+            }, 1500);
+        }
+
+        // 检查答案
+        function checkAnswer(selectedIndex) {
+            const q = questions[currentQuestion];
+            const options = document.querySelectorAll('.option-btn');
+            
+            // 标记正确和错误选项
+            options.forEach((btn, index) => {
+                if (index === q.correct) btn.classList.add('correct');
+                if (index === selectedIndex && selectedIndex !== q.correct) btn.classList.add('wrong');
+            });
+
+            // 如果是最后一题的“动态答案”
+            if (currentQuestion === questions.length - 1) {
+                const correctRange = getScoreRange();
+                q.correct = correctRange;
+                
+                // 重新标记（因为之前可能标记错了）
+                options.forEach((btn, index) => {
+                    btn.classList.remove('correct', 'wrong');
+                    if (index === q.correct) btn.classList.add('correct');
+                });
+            }
+
+            // 判断对错
+            const isCorrect = selectedIndex === q.correct;
+            if (isCorrect) {
+                if (currentQuestion !== questions.length - 1) score++;
+                createConfetti();
+            } else {
+                // 答错惩罚
+                document.getElementById('game-container').classList.add('shake');
+                setTimeout(() => {
+                    document.getElementById('game-container').classList.remove('shake');
+                }, 500);
+                alert(`❌ 错了！正确答案是：${q.options[q.correct]}\n解释：${q.explanation}`);
+            }
+
+            // 记录已答
+            if (!answeredQuestions.includes(currentQuestion)) {
+                answeredQuestions.push(currentQuestion);
+            }
+
+            // 禁用所有选项
+            options.forEach(btn => btn.disabled = true);
+
+            // 清除倒计时
+            clearInterval(timer);
+
+            // 自动跳转
+            setTimeout(() => {
+                if (currentQuestion === questions.length - 1) {
+                    endGame();
+                } else {
+                    nextQuestion();
+                }
+            }, 1500);
+        }
+
+        // 创建彩带效果
+        function createConfetti() {
+            const container = document.getElementById('game-container');
+            for (let i = 0; i < 20; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff'];
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.opacity = Math.random();
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                container.appendChild(confetti);
+                
+                // 动画
+                setTimeout(() => {
+                    confetti.style.top = '100%';
+                    confetti.style.opacity = '0';
+                }, 10);
+                
+                // 移除
+                setTimeout(() => {
+                    confetti.remove();
+                }, 1000);
+            }
+        }
+
+        // 下一题
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                updateQuestion();
+            }
+        }
+
+        // 上一题
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                updateQuestion();
+            }
+        }
+
+        // 获取分数范围（用于最后一题的动态答案）
+        function getScoreRange() {
+            if (score <= 3) return 0;
+            if (score <= 6) return 1;
+            if (score <= 9) return 2;
+            return 3;
+        }
+
+        // 结束游戏
+        function endGame() {
+            document.getElementById('score').innerText = score;
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('game-over').classList.remove('hidden');
+        }
+
+        // 重新开始
+        function restartGame() {
+            initGame();
+        }
+
+        // 绑定按钮事件
+        document.getElementById('prev-btn').onclick = prevQuestion;
+        document.getElementById('next-btn').onclick = nextQuestion;
+
+        // 启动游戏
+        initGame();
+    </script>
+</body>
+</html>
